@@ -1,6 +1,7 @@
 ﻿using mshtml;
 using SHDocVw;
 using System;
+using System.Collections.Generic;
 
 namespace IEOperateCore.Interface
 {
@@ -13,7 +14,10 @@ namespace IEOperateCore.Interface
         void Refresh();
         void CloseInternetExplorer();
         HTMLDocumentClass GetDom();
-        T GetInputElementByID<T>(HTMLDocumentClass dom,string id);
+        T GetInputElementByID<T>(string id);
+        IList<T> getElementByTagName<T>(string tagName);
+        void SenKey(string keyBoard);
+        IList<T> getElementByName<T>(string name);
         void SetIETabActivate( );
     }
 

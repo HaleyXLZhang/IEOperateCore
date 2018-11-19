@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace IEOperateCore.Common
 {
     //类库
-    public class TabActivator
+    internal class TabActivator
 
     {
         #region Nested type: OBJID

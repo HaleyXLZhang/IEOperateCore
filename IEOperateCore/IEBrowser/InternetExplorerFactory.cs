@@ -7,7 +7,7 @@ using System.Text;
 
 namespace IEOperateCore.IEBrowser
 {
-    public class InternetExplorerFactory
+    internal class InternetExplorerFactory
     {
         private InternetExplorerFactory() { }
         private static InternetExplorer IE = null;
@@ -17,7 +17,7 @@ namespace IEOperateCore.IEBrowser
             IE = new InternetExplorer();
 
             IE.Visible = true;
-
+          
             return IE;
         }
         public static InternetExplorer GetInternetExplorer(string url)

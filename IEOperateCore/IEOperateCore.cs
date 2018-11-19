@@ -5,6 +5,8 @@ using mshtml;
 using System.Threading;
 using System;
 using IEOperateCore.Common;
+using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace IEOperateCore
 {
@@ -15,12 +17,15 @@ namespace IEOperateCore
         public IEOperateCore()
         {
             ie = InternetExplorerFactory.GetInternetExplorer();
+
         }
         public IEOperateCore(string url)
         {
             ie = InternetExplorerFactory.GetInternetExplorer(url);
             OpenInternetExplorer(url);
-        }   
+
+
+        }
         public void SetIETabActivate()
         {
             new TabActivator((IntPtr)ie.HWND).ActivateByTabsUrl(ie.LocationURL);
@@ -52,9 +57,17 @@ namespace IEOperateCore
         }
 
 
-        public T GetInputElementByID<T>(HTMLDocumentClass dom, string id)
+        public T GetInputElementByID<T>(string id)
         {
+
+
+            GetDom();
             return (T)dom.getElementById(id);
+        }
+
+        public void SenKey(string keyBoard)
+        {
+            SendKeys.SendWait(keyBoard);
         }
 
         public void GoBack()
@@ -64,6 +77,10 @@ namespace IEOperateCore
 
         public void OpenInternetExplorer(string url)
         {
+            Win32.SetWindowPos(new IntPtr(ie.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_TOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
+
+            Win32.SetWindowPos(new IntPtr(ie.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_NOTTOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
+
             ie.Navigate(url);
         }
 
@@ -87,6 +104,38 @@ namespace IEOperateCore
         {
             ie.Height = height;
             ie.Width = width;
+        }
+
+        public IList<T> getElementByTagName<T>(string tagName)
+        {
+            IList<T> getCollection = new List<T>();
+
+            GetDom();
+
+            IHTMLElementCollection collection = dom.getElementsByTagName(tagName);
+
+            foreach (IHTMLElement elem in collection)
+            {
+                if (null != elem)
+                    getCollection.Add((T)elem);
+            }
+            return getCollection;
+        }
+
+        public IList<T> getElementByName<T>(string name)
+        {
+            IList<T> getCollection = new List<T>();
+
+            GetDom();
+
+            IHTMLElementCollection collection = dom.getElementsByName(name);
+
+            foreach (IHTMLElement elem in collection)
+            {
+                if (null != elem)
+                    getCollection.Add((T)elem);
+            }
+            return getCollection;
         }
     }
 }

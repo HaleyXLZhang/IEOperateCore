@@ -39,6 +39,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,7 +48,9 @@
     <Reference Include="UIAutomationClient" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\KeyBoard.cs" />
     <Compile Include="Common\TabActivator.cs" />
+    <Compile Include="Common\Win32.cs" />
     <Compile Include="IEOperateCore.cs" />
     <Compile Include="IEBrowser\InternetExplorerFactory.cs" />
     <Compile Include="Interface\IOperateDom.cs" />
