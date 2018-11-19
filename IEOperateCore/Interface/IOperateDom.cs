@@ -1,12 +1,10 @@
 ﻿using mshtml;
+using SHDocVw;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace IEOperateCore.Interface
 {
-    public interface IOperateDom
+    public interface IOperateDom: IDisposable
     {
         void SetInternetExplorerWindowPosition(int top, int left);
         void SetInternetExplorerWindowSize(int height, int width);
@@ -15,7 +13,9 @@ namespace IEOperateCore.Interface
         void Refresh();
         void CloseInternetExplorer();
         HTMLDocumentClass GetDom();
-        HTMLInputElementClass GetInputElementByID(HTMLDocumentClass dom,string id);
-
+        T GetInputElementByID<T>(HTMLDocumentClass dom,string id);
+        void SetIETabActivate( );
     }
+
+   
 }
