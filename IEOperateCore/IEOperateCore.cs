@@ -12,50 +12,89 @@ namespace IEOperateCore
 {
     public class IEOperateCore : IOperateDom
     {
-        private InternetExplorer ie;
+        public IntPtr HWND = new IntPtr(0);
+        public InternetExplorer IE;
         private HTMLDocumentClass dom;
+
         public IEOperateCore()
         {
-            ie = InternetExplorerFactory.GetInternetExplorer();
+            IE = InternetExplorerFactory.GetInternetExplorer();
+            HWND = new IntPtr(IE.HWND);
 
         }
         public IEOperateCore(string url)
         {
-            ie = InternetExplorerFactory.GetInternetExplorer(url);
-            OpenInternetExplorer(url);
+            IE = InternetExplorerFactory.GetInternetExplorer(url);
+            HWND = new IntPtr(IE.HWND);
+            int loopCount = 0;
+            while (IE.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
+            {
+                try
+                {
+                    dom = (HTMLDocumentClass)IE.Document;
+                }
+                catch (Exception e)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+                if (dom.readyState.Equals("complete")) break;
 
-
+                if (loopCount > 2000)
+                    throw new Exception("open " + url + " timeout!");
+                Thread.Sleep(500);
+                loopCount++;
+            }
         }
         public void SetIETabActivate()
         {
-            new TabActivator((IntPtr)ie.HWND).ActivateByTabsUrl(ie.LocationURL);
+            new TabActivator((IntPtr)IE.HWND).ActivateByTabsUrl(IE.LocationURL);
         }
         public void CloseInternetExplorer()
         {
 
             if (dom != null)
                 dom.close();
-            if (ie != null)
-                ie.Quit();
+            if (IE != null)
+                IE.Quit();
         }
 
         public void Dispose()
         {
             CloseInternetExplorer();
         }
+        public bool InternetExplorerWindowIsReady(string url)
+        {
+            SHDocVw.ShellWindows ieTabs = new SHDocVw.ShellWindows();
+
+            foreach (SHDocVw.InternetExplorer ieTab in ieTabs)
+            {
+                string filename = System.IO.Path.GetFileNameWithoutExtension(ieTab.FullName).ToLower();
+
+                if (filename.Equals("iexplore") && ieTab.LocationURL.Equals(url))
+                {
+                    return !ieTab.Busy;
+                }
+            }
+            return false;
+        }
 
         public HTMLDocumentClass GetDom()
         {
-
-            while (ie.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
+            int loopCount = 0;
+            while (IE.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
             {
+                if (loopCount > 2000)
+                    throw new Exception("Get dom timeout!");
                 Thread.Sleep(500);
+                loopCount++;
             }
 
-            dom = (HTMLDocumentClass)ie.Document;
+            dom = (HTMLDocumentClass)IE.Document;
+
+
             return dom;
         }
-
 
         public T GetInputElementByID<T>(string id)
         {
@@ -72,38 +111,56 @@ namespace IEOperateCore
 
         public void GoBack()
         {
-            ie.GoBack();
+            IE.GoBack();
         }
 
         public void OpenInternetExplorer(string url)
         {
-            Win32.SetWindowPos(new IntPtr(ie.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_TOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
+            Win32.SetWindowPos(new IntPtr(IE.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_TOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
 
-            Win32.SetWindowPos(new IntPtr(ie.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_NOTTOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
+            Win32.SetWindowPos(new IntPtr(IE.HWND), (IntPtr)Win32.hWndInsertAfter.HWND_NOTTOPMOST, 0, 0, 0, 0, Win32.TOPMOST_FLAGS);
 
-            ie.Navigate(url);
+            IE.Navigate(url);
+            int loopCount = 0;
+            while (IE.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
+            {
+                try
+                {
+                    dom = (HTMLDocumentClass)IE.Document;
+                }
+                catch (Exception e)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+                if (dom.readyState.Equals("complete")) break;
+                if (loopCount > 2000)
+                    throw new Exception("Get " + url + " timeout!");
+                Thread.Sleep(500);
+                loopCount++;
+            }
         }
 
         public void Refresh()
         {
 
-            while (ie.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
+            while (IE.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
             {
                 Thread.Sleep(500);
             }
-            ie.Refresh();
+            IE.Refresh();
         }
 
         public void SetInternetExplorerWindowPosition(int top, int left)
         {
-            ie.Top = top;
-            ie.Left = left;
+            IE.Top = top;
+            IE.Left = left;
         }
 
         public void SetInternetExplorerWindowSize(int height, int width)
         {
-            ie.Height = height;
-            ie.Width = width;
+            IE.Height = height;
+            IE.Width = width;
         }
 
         public IList<T> getElementByTagName<T>(string tagName)
@@ -135,6 +192,27 @@ namespace IEOperateCore
                 if (null != elem)
                     getCollection.Add((T)elem);
             }
+            return getCollection;
+        }
+
+
+        public IntPtr FindWindow(string lpClassName, string lpWindowName)
+        {
+            return Win32.FindWindow(lpClassName, lpWindowName);
+        }
+        public List<HtmlElement> GetHtmlElementByTagName(IHTMLElement pieceDom, string tagName)
+        {
+
+            List<HtmlElement> getCollection = new List<HtmlElement>();
+
+            //HtmlElementCollection findCollection = pieceDom.innerText(tagName);
+
+
+            //foreach (HtmlElement element in findCollection)
+            //{
+            //    if (null != element)
+            //        getCollection.Add(element);
+            //}
             return getCollection;
         }
     }

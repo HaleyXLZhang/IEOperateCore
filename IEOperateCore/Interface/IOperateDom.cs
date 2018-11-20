@@ -2,6 +2,7 @@
 using SHDocVw;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace IEOperateCore.Interface
 {
@@ -19,6 +20,11 @@ namespace IEOperateCore.Interface
         void SenKey(string keyBoard);
         IList<T> getElementByName<T>(string name);
         void SetIETabActivate( );
+        
+        IntPtr FindWindow(string lpClassName, string lpWindowName);
+      
+        List<HtmlElement> GetHtmlElementByTagName(IHTMLElement pieceDom, string tagName);
+        bool InternetExplorerWindowIsReady(string url);
     }
 
    
