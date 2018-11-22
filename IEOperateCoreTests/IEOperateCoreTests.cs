@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Windows.Forms;
+using System.Text;
 
 namespace IEOperateCore.Tests
 {
@@ -73,6 +74,39 @@ namespace IEOperateCore.Tests
 
         }
         [TestMethod()]
+        public void GeAlinkFromFrame()
+        {
+
+            IEOperateCore ieCore = new IEOperateCore("http://psgis.chinasofti.com/oa/SignOnServlet");
+            HTMLInputElementClass userName = ieCore.getElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("userName"));
+            HTMLInputElementClass passWord = ieCore.getElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("password"));
+            HTMLImgClass imgLogin = ieCore.getElementByTagName<HTMLImgClass>("img").ToList().Find(item => item.name.Equals("login_r3_c3"));
+            userName.value = string.Empty;
+            passWord.value = string.Empty;
+            userName.value = "E100086376";
+            passWord.value = "Qa20080607";
+            imgLogin.click();
+            Thread.Sleep(3500);
+            ieCore = new IEOperateCore("http://psgis.chinasofti.com/oa/portal");
+            HTMLDivElementClass btnPMS = ieCore.getElementByTagName<HTMLDivElementClass>("div").ToList().Find(item => item.className.Equals("channel app_PMS系统"));
+            Thread.Sleep(4000);
+            btnPMS.click();
+            Thread.Sleep(5000);
+
+            ieCore = new IEOperateCore("http://psgpms.chinasofti.com/main.jsp");
+
+
+            HTMLFrameElementClass midIframe = ieCore.GetInputElementByID<HTMLFrameElementClass>("ManagerLeftFrame");
+
+
+
+
+        }
+
+      
+
+
+        [TestMethod()]
         public void MatchWeb()
         {
             IEOperateCore ieCore = new IEOperateCore("http://psgpms.chinasofti.com/main.jsp");
@@ -105,6 +139,46 @@ namespace IEOperateCore.Tests
                 Win32.SendMessage(childHwnd, Win32.BM_CLICK, IntPtr.Zero, IntPtr.Zero);//发送点击按钮的消息                                             
             }
         }
+
+
+        //
+
+        [TestMethod()]
+        public void CaptureTableData()
+        {
+
+            StringBuilder buffer = new StringBuilder();
+
+            IEOperateCore ieCore = new IEOperateCore("http://psgpms.chinasofti.com/main.jsp");
+
+            HTMLFrameElementClass iframe = ieCore.GetInputElementByID<HTMLFrameElementClass>("mainFrame");
+
+            IHTMLDocument2 doc = iframe.contentWindow.document;
+
+            HTMLBodyClass bodyClass = (HTMLBodyClass)doc.body;
+
+            IHTMLElementCollection tableElementCollection = bodyClass.getElementsByTagName("table");
+
+            foreach (HTMLTableClass table in tableElementCollection)
+            {
+                if (null != table.id && table.id.Equals("rossTableId_TASK"))
+                {
+                    foreach (HTMLTableRowClass row in table.rows)
+                    {
+                        foreach (HTMLTableCellClass cell in row.cells)
+                        {
+                            if (null != cell.innerText)
+                                buffer.Append(cell.innerText + "        ");
+                        }
+                        buffer.Append("/r/n");
+
+                    }
+                    break;
+                }
+            }
+
+        }
+
 
         [TestMethod()]
         public void TestOperateCaculate()

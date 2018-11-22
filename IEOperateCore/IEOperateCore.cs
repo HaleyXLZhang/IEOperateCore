@@ -215,5 +215,46 @@ namespace IEOperateCore
             //}
             return getCollection;
         }
+
+
+        /// <summary>
+        /// 此方法是查找iframe下的a标签,查找规则是根据提供的searchKey查找指定的属性内容，默认直返回第一个被查找到的元素
+        /// </summary>
+        /// <param name="iframe"></param>
+        /// <param name="searchKey"></param>
+        /// <param name="isFindByTitle"></param>
+        /// <param name="isFindByClassName"></param>
+        /// <returns></returns>
+        public HTMLAnchorElementClass Get_Alink_From_IFrame(HTMLFrameElementClass iframe, string searchKey, bool isFindByTitle = true, bool isFindByClassName = false)
+        {
+            HTMLAnchorElementClass aLink = null;
+            IHTMLElementCollection aLinkElementCollection;
+            IHTMLDocument2 doc;
+            HTMLBodyClass bodyClass;
+            doc = iframe.contentWindow.document;
+            bodyClass = (HTMLBodyClass)doc.body;
+            aLinkElementCollection = bodyClass.getElementsByTagName("a");
+            foreach (HTMLAnchorElementClass item in aLinkElementCollection)
+            {
+                if (isFindByTitle)
+                {
+                    if (null != item.title && item.title.Equals(searchKey))
+                    {
+                        aLink = item;
+                        break;
+                    }
+                }
+                else if (isFindByClassName)
+                {
+                    if (null != item.className && item.className.Equals(searchKey))
+                    {
+                        aLink = item;
+                        break;
+                    }
+                }
+            }
+            return aLink;
+        }
+
     }
 }

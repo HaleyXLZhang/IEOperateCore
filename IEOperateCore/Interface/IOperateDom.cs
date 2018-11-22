@@ -25,6 +25,16 @@ namespace IEOperateCore.Interface
       
         List<HtmlElement> GetHtmlElementByTagName(IHTMLElement pieceDom, string tagName);
         bool InternetExplorerWindowIsReady(string url);
+        /// <summary>
+        /// 此方法是查找iframe下的a标签,查找规则是根据提供的searchKey查找指定的属性内容，默认直返回第一个被查找到的元素
+        /// </summary>
+        /// <param name="iframe"></param>
+        /// <param name="searchKey"></param>
+        /// <param name="isFindByTitle"></param>
+        /// <param name="isFindByClassName"></param>
+        /// <returns></returns>
+        HTMLAnchorElementClass Get_Alink_From_IFrame( HTMLFrameElementClass iframe, string searchKey, bool isFindByTitle = true, bool isFindByClassName = false);
+         
     }
 
    
