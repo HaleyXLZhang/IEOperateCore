@@ -46,8 +46,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\HtmlTable.cs" />
     <Compile Include="Common\KeyBoard.cs" />
     <Compile Include="Common\TabActivator.cs" />
     <Compile Include="Common\Win32.cs" />

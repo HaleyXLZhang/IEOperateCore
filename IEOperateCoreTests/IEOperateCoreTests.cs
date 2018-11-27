@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System;
 using System.Windows.Forms;
 using System.Text;
+using Microsoft.VisualStudio.CommandBars;
+using System.Windows.Automation;
+using Microsoft.Win32;
+using System.Text.RegularExpressions;
 
 namespace IEOperateCore.Tests
 {
@@ -103,7 +107,7 @@ namespace IEOperateCore.Tests
 
         }
 
-      
+
 
 
         [TestMethod()]
@@ -204,6 +208,169 @@ namespace IEOperateCore.Tests
             SendKeys.SendWait("11");
 
             SendKeys.SendWait("=");
+        }
+
+
+
+
+        [TestMethod()]
+        public void OperateDirectUI()
+        {
+            //IEOperateCore ieCore = new IEOperateCore("https://dl.pconline.com.cn/download/63040-1.html");
+
+            //Thread.Sleep(2000);
+
+            //IList<HTMLAnchorElementClass> aLinks = ieCore.getElementByTagName<HTMLAnchorElementClass>( "a");
+
+            //foreach (var a in aLinks)
+            //{
+            //    if (null != a.className && a.className.Equals("btn btn-gray"))
+            //    {
+            //        a.click();
+            //        break;
+            //    }
+            //}
+
+
+            //ieCore.FrameNotificationBar_DownLoadFile_Save();
+
+            // string original = "要运行或保存来自 ftp-idc.pconline.com.cn 的 70.0.3538.102_chrome_installer_32.exe (49.8 MB) 吗?";
+            string original = "Do you want to run or save 70.0.3538.102_chrome_installer_32.exe (49.8 MB) from ftp-idc.pconline.com.cn?";
+
+
+            string patternStr = "(?<= 的 | save )+.+.[A-Za-z]+ \\(\\d+.*\\d* [A-Za-z]+\\)";
+
+            Regex regex = new Regex(patternStr);
+
+            Match title = regex.Match(original);
+
+            string fileSizePattern = "\\(\\d+.*\\d* [A-Za-z]+\\)";
+
+            regex = new Regex(fileSizePattern);
+
+            Match fileSizeMatch = regex.Match(title.Value);
+
+            string fileSize = fileSizeMatch.Value;
+
+            string patternDownloadFileName = "(?<= 的 | save )+.+.[A-Za-z]+ (?=\\(\\d+.*\\d* [A-Za-z]+\\))";
+
+            regex = new Regex(patternDownloadFileName);
+
+            string fileName = regex.Match(original).Value;
+
+            IntPtr parentHandle = Win32.FindWindow("IEFrame", null);
+
+            AutomationElementCollection parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
+
+            foreach (AutomationElement parentElement in parentElements)
+            {
+                // Identidfy Download Manager Window in Internet Explorer
+                if (parentElement.Current.ClassName == "Frame Notification Bar")
+                {
+                    AutomationElementCollection childElements = parentElement.FindAll(TreeScope.Children, Condition.TrueCondition);
+                    // Idenfify child window with the name Notification Bar or class name as DirectUIHWND 
+                    foreach (AutomationElement childElement in childElements)
+                    {
+                        if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
+                        {
+                            AutomationElementCollection downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+
+                            AutomationElement fileNameText = childElement.FindFirst(TreeScope.Descendants,
+                                                                        new AndCondition(
+                                                                        new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Text),
+                                                                        new PropertyCondition(AutomationElement.IsContentElementProperty, true)
+                                                                        ));
+                            dynamic value = (ValuePattern)fileNameText.GetCurrentPattern(ValuePattern.Pattern);
+
+                            string content = (string)value.Current.Value;
+                            //要运行或保存来自 ftp-idc.pconline.com.cn 的 70.0.3538.102_chrome_installer_32.exe (49.8 MB) 吗?
+                            //Do you want to run or save 70.0.3538.102_chrome_installer_32.exe (49.8 MB) from ftp-idc.pconline.com.cn?
+
+                            foreach (AutomationElement ctrlButton in downloadCtrls)
+                            {
+                                //Now invoke the button click whichever you wish
+                                //另存为
+                                if (ctrlButton.Current.Name.Equals("关闭") || ctrlButton.Current.Name.ToLower().Equals("Close"))
+                                {
+                                    AutomationElementCollection contentTextChilds = ctrlButton.FindAll(TreeScope.Children, Condition.TrueCondition);
+                                    foreach (AutomationElement text in contentTextChilds)
+                                    {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private void GetAccessibleWindow(System.IntPtr imWindowHwnd, ref IAccessible IACurrent)
+
+        {
+
+            Guid guidCOM = new Guid(0x618736E0, 0x3C3D, 0x11CF, 0x81, 0xC, 0x0, 0xAA, 0x0, 0x38, 0x9B, 0x71);
+
+            Win32.AccessibleObjectFromWindow(imWindowHwnd, -4, ref guidCOM, ref IACurrent);
+
+        }
+
+        private IAccessible[] GetAccessibleChildren(IAccessible paccContainer)
+
+        {
+
+            IAccessible[] rgvarChildren = new IAccessible[paccContainer.accChildCount];
+
+            int pcObtained;
+
+            Win32.AccessibleChildren(paccContainer, 0, paccContainer.accChildCount, rgvarChildren, out pcObtained);
+
+            return rgvarChildren;
+
+        }
+
+        public IAccessible GetAccessibleChild(IAccessible paccContainer, int[] array)
+        {
+            if (!array.Length.Equals(0))
+            {
+                IAccessible[] children = GetAccessibleChildren(paccContainer);
+                IAccessible result = children[array[0]];
+                if (result.accChildCount == 0)
+                {
+                    throw new Exception("error: parent:" + ((IAccessible)result.accParent).accChildCount + " role:" + result.accRole + " state:" + result.accState);
+                }
+                int[] array_1 = new int[array.Length - 1];
+                for (int i = 0; i < array.Length - 1; i++)
+                {
+                    array_1[i] = array[i + 1];
+                }
+                return GetAccessibleChild(result, array_1);
+            }
+            else
+            {
+                return paccContainer;
+            }
         }
 
     }

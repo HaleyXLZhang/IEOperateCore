@@ -7,6 +7,9 @@ using System;
 using IEOperateCore.Common;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Windows.Automation;
+using Microsoft.Win32;
+using System.IO;
 
 namespace IEOperateCore
 {
@@ -255,6 +258,284 @@ namespace IEOperateCore
             }
             return aLink;
         }
+        public HTMLTableClass FindTableFromDocument(IHTMLDocument2 doc, string tableId)
+        {
 
+            HTMLTableClass findTable = null;
+
+            HTMLBodyClass bodyClass = (HTMLBodyClass)doc.body;
+
+            IHTMLElementCollection tableElementCollection = bodyClass.getElementsByTagName("table");
+
+            foreach (HTMLTableClass table in tableElementCollection)
+            {
+                if (null != table.id && table.id.Equals(tableId))
+                {
+                    findTable = table;
+                    break;
+                }
+            }
+            return findTable;
+        }
+
+        public HTMLTableClass FindTableFromDocument(HTMLDocument doc, string tableId)
+        {
+            HTMLTableClass findTable = null;
+
+            HTMLBodyClass bodyClass = (HTMLBodyClass)doc.body;
+
+            IHTMLElementCollection tableElementCollection = bodyClass.getElementsByTagName("table");
+
+            foreach (HTMLTableClass table in tableElementCollection)
+            {
+                if (null != table.id && table.id.Equals(tableId))
+                {
+                    findTable = table;
+                    break;
+                }
+            }
+            return findTable;
+        }
+
+        public HtmlTable GetDataFromHtmlTable(HTMLTableClass tableCalss)
+        {
+            HtmlTable table = new HtmlTable();
+            HtmlTableRow headerRow = new HtmlTableRow();
+            int rowIndex = 0;
+            foreach (HTMLTableRowClass row in tableCalss.rows)
+            {
+                // table header
+                if (rowIndex == 0)
+                {
+                    int columnIndex = 0;
+                    foreach (HTMLTableCellClass cell in row.cells)
+                    {
+                        if (null != cell.innerText)
+                        {
+                            HtmlTableCell newCell = new HtmlTableCell();
+                            newCell.CellName = cell.innerText;
+                            newCell.CellColumnIndex = columnIndex;
+                            newCell.CellValue = null;
+                            headerRow.Cells.Add(newCell);
+                        }
+                        columnIndex++;
+                    }
+                }
+                else
+                {
+                    // table body
+                    HtmlTableRow newRow = new HtmlTableRow();
+                    newRow.RowIndex = --rowIndex;
+                    int columnIndex = 0;
+                    foreach (HTMLTableCellClass cell in row.cells)
+                    {
+                        if (null != cell.innerText)
+                        {
+                            HtmlTableCell newCell = new HtmlTableCell();
+                            newCell.CellName = headerRow.Cells[columnIndex].CellName;
+                            newCell.CellColumnIndex = columnIndex;
+                            newCell.CellValue = cell.innerText;
+                            newRow.Cells.Add(newCell);
+                        }
+                        columnIndex++;
+                    }
+                    table.HtmlTableRows.Add(newRow);
+                }
+                rowIndex++;
+            }
+            return table;
+        }
+
+        public void FrameNotificationBar_DownLoadFile_Save(string savePath = null, string windowTitle = null)
+        {
+            SaveFileFrameNotificationBar(savePath,windowTitle);
+        }
+
+        public void FrameNotificationBar_DownLoadFile_SaveAs(string savePath = null, string windowTitle = null)
+        {
+            SaveAsFileFrameNotificationBar(savePath, windowTitle);
+        }
+
+        private void SaveAsFileFrameNotificationBar(string saveFile = null, string windowTitle = null)
+        {
+            String path = String.Empty;
+            IntPtr parentHandle = Win32.FindWindow("IEFrame", windowTitle);
+            var parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
+            foreach (AutomationElement parentElement in parentElements)
+            {
+                // Identidfy Download Manager Window in Internet Explorer
+                if (parentElement.Current.ClassName == "Frame Notification Bar")
+                {
+                    var childElements = parentElement.FindAll(TreeScope.Children, Condition.TrueCondition);
+                    // Idenfify child window with the name Notification Bar or class name as DirectUIHWND 
+                    foreach (AutomationElement childElement in childElements)
+                    {
+                        if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
+                        {
+                            var downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+                            foreach (AutomationElement ctrlButton in downloadCtrls)
+                            {
+                                //Now invoke the button click whichever you wish
+                                //另存为
+                                if (ctrlButton.Current.Name.ToLower() == "")
+                                {
+                                    var saveSubMenu = ctrlButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                                    saveSubMenu.Invoke();
+                                    SendKeys.SendWait("{DOWN}");
+                                    Thread.Sleep(500);
+                                    SendKeys.SendWait("{ENTER}");
+
+                                    Thread.Sleep(2000);
+
+                                    IntPtr saveMenuHandle = Win32.FindWindow(null, "另存为");
+
+                                    if (saveMenuHandle == IntPtr.Zero)
+
+                                        saveMenuHandle = Win32.FindWindow(null, "Save As");
+
+                                    var subMenuItems = AutomationElement.FromHandle(saveMenuHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
+                                    foreach (AutomationElement item in subMenuItems)
+                                    {
+                                        if (item.Current.ClassName.Equals("DUIViewWndClassName"))
+                                        {
+                                            AutomationElement fileNameText = item.FindFirst(TreeScope.Descendants,
+                                                                                        new AndCondition(
+                                                                                        new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit),
+                                                                                        new PropertyCondition(AutomationElement.ClassNameProperty, "Edit")
+                                                                                        ));
+                                            if (null != saveFile)
+                                                Win32.SendMessage(new IntPtr(fileNameText.Current.NativeWindowHandle), Win32.WM_SETTEXT, IntPtr.Zero, saveFile);
+                                        }
+                                        if (item.Current.Name.Equals("保存(S)") || item.Current.Name.ToLower().Equals("save(s)"))
+                                        {
+                                            var saveAsMenuItem = item.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                                            saveAsMenuItem.Invoke();
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (null == saveFile)
+            {
+                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
+                if (rKey != null)
+                    path = (String)rKey.GetValue("Default Download Directory");
+                if (String.IsNullOrEmpty(path))
+                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads";
+            }
+            else
+            {
+                path = saveFile;
+            }
+
+            int waitCount = 1800;
+            do
+            {
+                Thread.Sleep(1000);
+                waitCount--;
+                if (waitCount < 0) throw new Exception(string.Format("Download Failed: {0}", path));
+            } while (!File.Exists(path));
+
+            CloseFrameNotificationBar(windowTitle);
+        }
+        private void SaveFileFrameNotificationBar(string saveFile = null, string windowTitle = null)
+        {
+            String path = String.Empty;
+            IntPtr parentHandle = Win32.FindWindow("IEFrame", windowTitle);
+            var parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
+            foreach (AutomationElement parentElement in parentElements)
+            {
+                // Identidfy Download Manager Window in Internet Explorer
+                if (parentElement.Current.ClassName == "Frame Notification Bar")
+                {
+                    var childElements = parentElement.FindAll(TreeScope.Children, Condition.TrueCondition);
+                    // Idenfify child window with the name Notification Bar or class name as DirectUIHWND 
+                    foreach (AutomationElement childElement in childElements)
+                    {
+                        if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
+                        {
+                            var downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+                            foreach (AutomationElement ctrlButton in downloadCtrls)
+                            {
+                                //Now invoke the button click whichever you wish
+                                //另存为
+                                if (ctrlButton.Current.Name.Equals("保存") || ctrlButton.Current.Name.ToLower().Equals("save"))
+                                {
+                                    var saveSubMenu = ctrlButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                                    saveSubMenu.Invoke();
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (null == saveFile)
+            {
+                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
+                if (rKey != null)
+                    path = (String)rKey.GetValue("Default Download Directory");
+                if (String.IsNullOrEmpty(path))
+                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads";
+            }
+            else
+            {
+                path = saveFile;
+            }
+
+            int waitCount = 1800;
+            do
+            {
+                Thread.Sleep(1000);
+                waitCount--;
+                if (waitCount < 0) throw new Exception(string.Format("Download Failed: {0}", path));
+            } while (!File.Exists(path));
+
+            CloseFrameNotificationBar(windowTitle);
+        }
+        private void CloseFrameNotificationBar(string windowTitle = null)
+        {
+            IntPtr parentHandle = Win32.FindWindow("IEFrame", windowTitle);
+
+            AutomationElementCollection parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
+
+            foreach (AutomationElement parentElement in parentElements)
+            {
+                // Identidfy Download Manager Window in Internet Explorer
+                if (parentElement.Current.ClassName == "Frame Notification Bar")
+                {
+                    AutomationElementCollection childElements = parentElement.FindAll(TreeScope.Children, Condition.TrueCondition);
+                    // Idenfify child window with the name Notification Bar or class name as DirectUIHWND 
+                    foreach (AutomationElement childElement in childElements)
+                    {
+                        if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
+                        {
+                            AutomationElementCollection downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
+
+                            foreach (AutomationElement ctrlButton in downloadCtrls)
+                            {
+                                //Now invoke the button click whichever you wish
+                                //另存为
+                                if (ctrlButton.Current.Name.Equals("关闭") || ctrlButton.Current.Name.ToLower().Equals("Close"))
+                                {
+                                    var closeButton = ctrlButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+
+                                    closeButton.Invoke();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,12 +1,12 @@
-﻿using mshtml;
-using SHDocVw;
+﻿using IEOperateCore.Common;
+using mshtml;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace IEOperateCore.Interface
 {
-    public interface IOperateDom: IDisposable
+    public interface IOperateDom : IDisposable
     {
         void SetInternetExplorerWindowPosition(int top, int left);
         void SetInternetExplorerWindowSize(int height, int width);
@@ -19,10 +19,10 @@ namespace IEOperateCore.Interface
         IList<T> getElementByTagName<T>(string tagName);
         void SenKey(string keyBoard);
         IList<T> getElementByName<T>(string name);
-        void SetIETabActivate( );
-        
+        void SetIETabActivate();
+
         IntPtr FindWindow(string lpClassName, string lpWindowName);
-      
+
         List<HtmlElement> GetHtmlElementByTagName(IHTMLElement pieceDom, string tagName);
         bool InternetExplorerWindowIsReady(string url);
         /// <summary>
@@ -33,9 +33,16 @@ namespace IEOperateCore.Interface
         /// <param name="isFindByTitle"></param>
         /// <param name="isFindByClassName"></param>
         /// <returns></returns>
-        HTMLAnchorElementClass Get_Alink_From_IFrame( HTMLFrameElementClass iframe, string searchKey, bool isFindByTitle = true, bool isFindByClassName = false);
-         
-    }
+        HTMLAnchorElementClass Get_Alink_From_IFrame(HTMLFrameElementClass iframe, string searchKey, bool isFindByTitle = true, bool isFindByClassName = false);
 
-   
+        HTMLTableClass FindTableFromDocument(IHTMLDocument2 doc, string tableId);
+
+        HTMLTableClass FindTableFromDocument(HTMLDocument doc, string tableId);
+
+        HtmlTable GetDataFromHtmlTable(HTMLTableClass tableCalss);
+
+        void FrameNotificationBar_DownLoadFile_Save(string savePath = null, string windowTitle = null);
+
+        void FrameNotificationBar_DownLoadFile_SaveAs(string savePath = null, string windowTitle = null);
+    }
 }
