@@ -216,23 +216,36 @@ namespace IEOperateCore.Tests
         [TestMethod()]
         public void OperateDirectUI()
         {
-            //IEOperateCore ieCore = new IEOperateCore("https://dl.pconline.com.cn/download/63040-1.html");
+            IEOperateCore ieCore = new IEOperateCore("https://dl.pconline.com.cn/download/63040-1.html");
 
-            //Thread.Sleep(2000);
+            Thread.Sleep(2000);
 
-            //IList<HTMLAnchorElementClass> aLinks = ieCore.getElementByTagName<HTMLAnchorElementClass>( "a");
+            IList<HTMLAnchorElementClass> aLinks = ieCore.getElementByTagName<HTMLAnchorElementClass>("a");
 
-            //foreach (var a in aLinks)
-            //{
-            //    if (null != a.className && a.className.Equals("btn btn-gray"))
-            //    {
-            //        a.click();
-            //        break;
-            //    }
-            //}
+            foreach (var a in aLinks)
+            {
+                if (null != a.className && a.className.Equals("btn btn-gray"))
+                {
+                    a.click();
+                    Thread.Sleep(3000);
+                    break;
+                }
+            }
 
 
-            //ieCore.FrameNotificationBar_DownLoadFile_Save();
+            ieCore.FrameNotificationBar_DownLoadFile_Save();
+
+            ieCore.CloseInternetExplorer();
+        }
+
+        [TestMethod()]
+        public void OperateDownloadFrameNotificationBar()
+        {
+            IEOperateCore ieCore = new IEOperateCore("https://dl.pconline.com.cn/download/63040-1.html");
+
+            Thread.Sleep(2000);
+
+           
 
             // string original = "要运行或保存来自 ftp-idc.pconline.com.cn 的 70.0.3538.102_chrome_installer_32.exe (49.8 MB) 吗?";
             string original = "Do you want to run or save 70.0.3538.102_chrome_installer_32.exe (49.8 MB) from ftp-idc.pconline.com.cn?";
@@ -302,76 +315,6 @@ namespace IEOperateCore.Tests
                     }
                 }
             }
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        private void GetAccessibleWindow(System.IntPtr imWindowHwnd, ref IAccessible IACurrent)
-
-        {
-
-            Guid guidCOM = new Guid(0x618736E0, 0x3C3D, 0x11CF, 0x81, 0xC, 0x0, 0xAA, 0x0, 0x38, 0x9B, 0x71);
-
-            Win32.AccessibleObjectFromWindow(imWindowHwnd, -4, ref guidCOM, ref IACurrent);
-
-        }
-
-        private IAccessible[] GetAccessibleChildren(IAccessible paccContainer)
-
-        {
-
-            IAccessible[] rgvarChildren = new IAccessible[paccContainer.accChildCount];
-
-            int pcObtained;
-
-            Win32.AccessibleChildren(paccContainer, 0, paccContainer.accChildCount, rgvarChildren, out pcObtained);
-
-            return rgvarChildren;
-
-        }
-
-        public IAccessible GetAccessibleChild(IAccessible paccContainer, int[] array)
-        {
-            if (!array.Length.Equals(0))
-            {
-                IAccessible[] children = GetAccessibleChildren(paccContainer);
-                IAccessible result = children[array[0]];
-                if (result.accChildCount == 0)
-                {
-                    throw new Exception("error: parent:" + ((IAccessible)result.accParent).accChildCount + " role:" + result.accRole + " state:" + result.accState);
-                }
-                int[] array_1 = new int[array.Length - 1];
-                for (int i = 0; i < array.Length - 1; i++)
-                {
-                    array_1[i] = array[i + 1];
-                }
-                return GetAccessibleChild(result, array_1);
-            }
-            else
-            {
-                return paccContainer;
-            }
-        }
-
     }
 }

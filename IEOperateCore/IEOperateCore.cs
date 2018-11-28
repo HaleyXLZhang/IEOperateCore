@@ -10,11 +10,15 @@ using System.Windows.Forms;
 using System.Windows.Automation;
 using Microsoft.Win32;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace IEOperateCore
 {
     public class IEOperateCore : IOperateDom
     {
+        private const string patternStr = "(?<= 的 | save )+.+.[A-Za-z]+ \\(\\d+.*\\d* [A-Za-z]+\\)";
+        private const string fileSizePattern = "\\(\\d+.*\\d* [A-Za-z]+\\)";
+        private const string patternDownloadFileName = "(?<= 的 | save )+.+.[A-Za-z]+ (?=\\(\\d+.*\\d* [A-Za-z]+\\))";
         public IntPtr HWND = new IntPtr(0);
         public InternetExplorer IE;
         private HTMLDocumentClass dom;
@@ -218,8 +222,6 @@ namespace IEOperateCore
             //}
             return getCollection;
         }
-
-
         /// <summary>
         /// 此方法是查找iframe下的a标签,查找规则是根据提供的searchKey查找指定的属性内容，默认直返回第一个被查找到的元素
         /// </summary>
@@ -358,6 +360,8 @@ namespace IEOperateCore
 
         private void SaveAsFileFrameNotificationBar(string saveFile = null, string windowTitle = null)
         {
+            string fileName = string.Empty;
+            string fileSize = string.Empty;
             String path = String.Empty;
             IntPtr parentHandle = Win32.FindWindow("IEFrame", windowTitle);
             var parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
@@ -372,6 +376,42 @@ namespace IEOperateCore
                     {
                         if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
                         {
+                            AutomationElement notificationBarFileNameText = childElement.FindFirst(TreeScope.Descendants,
+                                                                   new AndCondition(
+                                                                   new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Text),
+                                                                   new PropertyCondition(AutomationElement.IsContentElementProperty, true)
+                                                                   ));
+                            dynamic value = (ValuePattern)notificationBarFileNameText.GetCurrentPattern(ValuePattern.Pattern);
+
+                            string content = (string)value.Current.Value;
+
+                            Regex regex = new Regex(patternStr);
+
+                            Match title = regex.Match(content);
+
+                            regex = new Regex(fileSizePattern);
+
+                            Match fileSizeMatch = regex.Match(title.Value);
+
+                            fileSize = fileSizeMatch.Value;
+
+                            regex = new Regex(patternDownloadFileName);
+
+                            fileName = regex.Match(content).Value;
+                            if (null == saveFile)
+                            {
+                                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
+                                if (rKey != null)
+                                    path = (String)rKey.GetValue("Default Download Directory");
+                                if (String.IsNullOrEmpty(path))
+                                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads\\" + fileName;
+                            }
+                            else
+                            {
+                                path = saveFile;
+                            }
+                            if (File.Exists(path)) File.Delete(path);
+
                             var downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
                             foreach (AutomationElement ctrlButton in downloadCtrls)
                             {
@@ -422,20 +462,8 @@ namespace IEOperateCore
                 }
             }
 
-            if (null == saveFile)
-            {
-                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
-                if (rKey != null)
-                    path = (String)rKey.GetValue("Default Download Directory");
-                if (String.IsNullOrEmpty(path))
-                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads";
-            }
-            else
-            {
-                path = saveFile;
-            }
-
-            int waitCount = 1800;
+            
+            int waitCount = 1200;
             do
             {
                 Thread.Sleep(1000);
@@ -447,6 +475,8 @@ namespace IEOperateCore
         }
         private void SaveFileFrameNotificationBar(string saveFile = null, string windowTitle = null)
         {
+            string fileName = string.Empty;
+            string fileSize = string.Empty;
             String path = String.Empty;
             IntPtr parentHandle = Win32.FindWindow("IEFrame", windowTitle);
             var parentElements = AutomationElement.FromHandle(parentHandle).FindAll(TreeScope.Children, Condition.TrueCondition);
@@ -461,6 +491,44 @@ namespace IEOperateCore
                     {
                         if (childElement.Current.Name == "Notification bar" || childElement.Current.ClassName == "DirectUIHWND")
                         {
+                            AutomationElement fileNameText = childElement.FindFirst(TreeScope.Descendants,
+                                                                    new AndCondition(
+                                                                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Text),
+                                                                    new PropertyCondition(AutomationElement.IsContentElementProperty, true)
+                                                                    ));
+                            dynamic value = (ValuePattern)fileNameText.GetCurrentPattern(ValuePattern.Pattern);
+
+                            string content = (string)value.Current.Value;
+
+                            Regex regex = new Regex(patternStr);
+
+                            Match title = regex.Match(content);
+ 
+                            regex = new Regex(fileSizePattern);
+
+                            Match fileSizeMatch = regex.Match(title.Value);
+
+                            fileSize = fileSizeMatch.Value;
+                          
+                            regex = new Regex(patternDownloadFileName);
+
+                            fileName = regex.Match(content).Value;
+
+                            if (null == saveFile)
+                            {
+                                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
+                                if (rKey != null)
+                                    path = (String)rKey.GetValue("Default Download Directory");
+                                if (String.IsNullOrEmpty(path))
+                                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads\\" + fileName;
+                            }
+                            else
+                            {
+                                path = saveFile;
+                            }
+
+                            if (File.Exists(path)) File.Delete(path);
+
                             var downloadCtrls = childElement.FindAll(TreeScope.Descendants, Condition.TrueCondition);
                             foreach (AutomationElement ctrlButton in downloadCtrls)
                             {
@@ -479,20 +547,9 @@ namespace IEOperateCore
                 }
             }
 
-            if (null == saveFile)
-            {
-                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Internet Explorer\Main");
-                if (rKey != null)
-                    path = (String)rKey.GetValue("Default Download Directory");
-                if (String.IsNullOrEmpty(path))
-                    path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\downloads";
-            }
-            else
-            {
-                path = saveFile;
-            }
+          
 
-            int waitCount = 1800;
+            int waitCount = 1200;
             do
             {
                 Thread.Sleep(1000);
