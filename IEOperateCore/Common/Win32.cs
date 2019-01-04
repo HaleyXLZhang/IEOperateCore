@@ -18,7 +18,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace IEOperateCore.Common
+namespace IEOperateLib.Common
 {
     public class Win32
     {

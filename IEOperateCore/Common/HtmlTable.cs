@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IEOperateCore.Common
+namespace IEOperateLib.Common
 {
     public class HtmlTable
     {

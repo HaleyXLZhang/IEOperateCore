@@ -1,18 +1,16 @@
-﻿using IEOperateCore.Common;
+﻿using Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using mshtml;
-using System.Threading;
-using System.Linq;
-using System.Collections.Generic;
 using System;
-using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using Microsoft.VisualStudio.CommandBars;
-using System.Windows.Automation;
-using Microsoft.Win32;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Automation;
+using System.Windows.Forms;
 
-namespace IEOperateCore.Tests
+namespace IEOperateLib.Tests
 {
     [TestClass()]
     public class IEOperateCoreTests
@@ -74,7 +72,7 @@ namespace IEOperateCore.Tests
         {
             IEOperateCore ieCore = new IEOperateCore("https://hao.360.cn/");
 
-            var list = ieCore.getElementByTagName<HTMLLIElementClass>("li");
+            var list = ieCore.GetElementByTagName<HTMLLIElementClass>("li");
 
         }
         [TestMethod()]
@@ -82,9 +80,9 @@ namespace IEOperateCore.Tests
         {
 
             IEOperateCore ieCore = new IEOperateCore("http://psgis.chinasofti.com/oa/SignOnServlet");
-            HTMLInputElementClass userName = ieCore.getElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("userName"));
-            HTMLInputElementClass passWord = ieCore.getElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("password"));
-            HTMLImgClass imgLogin = ieCore.getElementByTagName<HTMLImgClass>("img").ToList().Find(item => item.name.Equals("login_r3_c3"));
+            HTMLInputElementClass userName = ieCore.GetElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("userName"));
+            HTMLInputElementClass passWord = ieCore.GetElementByTagName<HTMLInputElementClass>("input").ToList().Find(item => item.name.Equals("password"));
+            HTMLImgClass imgLogin = ieCore.GetElementByTagName<HTMLImgClass>("img").ToList().Find(item => item.name.Equals("login_r3_c3"));
             userName.value = string.Empty;
             passWord.value = string.Empty;
             userName.value = "E100086376";
@@ -92,7 +90,7 @@ namespace IEOperateCore.Tests
             imgLogin.click();
             Thread.Sleep(3500);
             ieCore = new IEOperateCore("http://psgis.chinasofti.com/oa/portal");
-            HTMLDivElementClass btnPMS = ieCore.getElementByTagName<HTMLDivElementClass>("div").ToList().Find(item => item.className.Equals("channel app_PMS系统"));
+            HTMLDivElementClass btnPMS = ieCore.GetElementByTagName<HTMLDivElementClass>("div").ToList().Find(item => item.className.Equals("channel app_PMS系统"));
             Thread.Sleep(4000);
             btnPMS.click();
             Thread.Sleep(5000);
@@ -210,9 +208,6 @@ namespace IEOperateCore.Tests
             SendKeys.SendWait("=");
         }
 
-
-
-
         [TestMethod()]
         public void OperateDirectUI()
         {
@@ -220,7 +215,7 @@ namespace IEOperateCore.Tests
 
             Thread.Sleep(2000);
 
-            IList<HTMLAnchorElementClass> aLinks = ieCore.getElementByTagName<HTMLAnchorElementClass>("a");
+            IList<HTMLAnchorElementClass> aLinks = ieCore.GetElementByTagName<HTMLAnchorElementClass>("a");
 
             foreach (var a in aLinks)
             {
@@ -231,7 +226,6 @@ namespace IEOperateCore.Tests
                     break;
                 }
             }
-
 
             ieCore.FrameNotificationBar_DownLoadFile_Save();
 
@@ -244,12 +238,9 @@ namespace IEOperateCore.Tests
             IEOperateCore ieCore = new IEOperateCore("https://dl.pconline.com.cn/download/63040-1.html");
 
             Thread.Sleep(2000);
-
-           
-
+     
             // string original = "要运行或保存来自 ftp-idc.pconline.com.cn 的 70.0.3538.102_chrome_installer_32.exe (49.8 MB) 吗?";
             string original = "Do you want to run or save 70.0.3538.102_chrome_installer_32.exe (49.8 MB) from ftp-idc.pconline.com.cn?";
-
 
             string patternStr = "(?<= 的 | save )+.+.[A-Za-z]+ \\(\\d+.*\\d* [A-Za-z]+\\)";
 

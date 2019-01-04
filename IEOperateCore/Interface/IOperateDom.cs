@@ -1,13 +1,14 @@
-﻿using IEOperateCore.Common;
+﻿using IEOperateLib.Common;
 using mshtml;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace IEOperateCore.Interface
+namespace IEOperateLib.Interface
 {
     public interface IOperateDom : IDisposable
     {
+        bool IsMatchIEPage(string url);
         void SetInternetExplorerWindowPosition(int top, int left);
         void SetInternetExplorerWindowSize(int height, int width);
         void OpenInternetExplorer(string url);
@@ -16,9 +17,9 @@ namespace IEOperateCore.Interface
         void CloseInternetExplorer();
         HTMLDocumentClass GetDom();
         T GetInputElementByID<T>(string id);
-        IList<T> getElementByTagName<T>(string tagName);
+        IList<T> GetElementByTagName<T>(string tagName);
         void SenKey(string keyBoard);
-        IList<T> getElementByName<T>(string name);
+        IList<T> GetElementByName<T>(string name);
         void SetIETabActivate();
 
         IntPtr FindWindow(string lpClassName, string lpWindowName);

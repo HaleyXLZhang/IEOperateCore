@@ -7,8 +7,8 @@
     <ProjectGuid>{50F1B2C5-E388-4348-B05D-2959132E236A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>IEOperateCore</RootNamespace>
-    <AssemblyName>IEOperateCore</AssemblyName>
+    <RootNamespace>IEOperateLib</RootNamespace>
+    <AssemblyName>IEOperateLib</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

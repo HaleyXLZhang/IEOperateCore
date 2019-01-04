@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace IEOperateCore.Common
+namespace IEOperateLib.Common
 {
     //类库
     internal class TabActivator
@@ -52,24 +52,15 @@ namespace IEOperateCore.Common
                                                      [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] object[] rgvarChildren, out int pcObtained);
         #endregion
 
-
-
         #region Constructors
 
-
-
         internal TabActivator(IntPtr ieHandle)
-
         {
-
             _hWnd = ieHandle;
 
             AccessibleObjectFromWindow(GetDirectUIHWND(ieHandle), OBJID.OBJID_WINDOW, ref _accessible);
 
-
-
             CheckForAccessible();
-
         }
 
 
@@ -77,80 +68,39 @@ namespace IEOperateCore.Common
         private TabActivator(IAccessible acc)
 
         {
-
-            if (acc == null)
-
-                throw new Exception("Could not get accessible");
-
-
-
-            _accessible = acc;
+            _accessible = acc ?? throw new Exception("Could not get accessible");
 
         }
-
-
-
         #endregion
-
-
-
         private TabActivator[] Children
-
         {
             get
-
             {
-
                 var num = 0;
 
                 var res = GetAccessibleChildren(_accessible, out num);
-
-
 
                 if (res == null)
 
                     return new TabActivator[0];
 
-
-
                 var list = new List<TabActivator>(res.Length);
 
-
-
                 foreach (object obj in res)
-
                 {
-
                     var acc = obj as IAccessible;
-
-
 
                     if (acc != null)
 
                         list.Add(new TabActivator(acc));
-
                 }
-
-
-
                 return list.ToArray();
-
             }
-
         }
-
-
-
         private int ChildCount
-
         {
-
             get { return _accessible.accChildCount; }
-
         }
-
-
-
         /// <summary>
 
         /// Gets LocationUrl of the tab
@@ -199,7 +149,7 @@ namespace IEOperateCore.Common
         {
 
             var tabIndexToActivate = GetTabIndexToActivate(tabsUrl);
-       
+
             AccessibleObjectFromWindow(GetDirectUIHWND(_hWnd), OBJID.OBJID_WINDOW, ref _accessible);
 
             CheckForAccessible();
@@ -252,7 +202,7 @@ namespace IEOperateCore.Common
         private void ActivateTab()
 
         {
-         _accessible.accDoDefaultAction(CHILDID_SELF);
+            _accessible.accDoDefaultAction(CHILDID_SELF);
 
         }
 

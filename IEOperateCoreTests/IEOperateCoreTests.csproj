@@ -71,9 +71,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IEOperateCore\IEOperateCore.csproj">
+    <ProjectReference Include="..\IEOperateCore\IEOperateLib.csproj">
       <Project>{50F1B2C5-E388-4348-B05D-2959132E236A}</Project>
-      <Name>IEOperateCore</Name>
+      <Name>IEOperateLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

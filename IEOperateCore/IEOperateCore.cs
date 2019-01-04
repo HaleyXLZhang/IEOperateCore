@@ -1,18 +1,19 @@
-﻿using IEOperateCore.IEBrowser;
-using IEOperateCore.Interface;
-using SHDocVw;
-using mshtml;
-using System.Threading;
-using System;
-using IEOperateCore.Common;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Windows.Automation;
+﻿using IEOperateLib.Common;
+using IEOperateLib.IEBrowser;
+using IEOperateLib.Interface;
 using Microsoft.Win32;
+using mshtml;
+using SHDocVw;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Automation;
+using System.Windows.Forms;
+using System.Diagnostics;
 
-namespace IEOperateCore
+namespace IEOperateLib
 {
     public class IEOperateCore : IOperateDom
     {
@@ -29,9 +30,18 @@ namespace IEOperateCore
             HWND = new IntPtr(IE.HWND);
 
         }
+
+        public bool IsMatchIEPage(string url)
+        {
+
+            return InternetExplorerFactory.IsMatchIEWindow(url);
+        }
+
         public IEOperateCore(string url)
         {
+
             IE = InternetExplorerFactory.GetInternetExplorer(url);
+
             HWND = new IntPtr(IE.HWND);
             int loopCount = 0;
             while (IE.ReadyState != tagREADYSTATE.READYSTATE_COMPLETE)
@@ -40,7 +50,7 @@ namespace IEOperateCore
                 {
                     dom = (HTMLDocumentClass)IE.Document;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Thread.Sleep(1000);
                     continue;
@@ -52,6 +62,7 @@ namespace IEOperateCore
                 Thread.Sleep(500);
                 loopCount++;
             }
+
         }
         public void SetIETabActivate()
         {
@@ -59,11 +70,16 @@ namespace IEOperateCore
         }
         public void CloseInternetExplorer()
         {
-
             if (dom != null)
+            {
                 dom.close();
+                dom = null;
+            }
             if (IE != null)
-                IE.Quit();
+            {
+                InternetExplorerFactory.CloseInternetExplorer();
+                HWND = new IntPtr(0);
+            }
         }
 
         public void Dispose()
@@ -135,7 +151,7 @@ namespace IEOperateCore
                 {
                     dom = (HTMLDocumentClass)IE.Document;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Thread.Sleep(1000);
                     continue;
@@ -170,7 +186,7 @@ namespace IEOperateCore
             IE.Width = width;
         }
 
-        public IList<T> getElementByTagName<T>(string tagName)
+        public IList<T> GetElementByTagName<T>(string tagName)
         {
             IList<T> getCollection = new List<T>();
 
@@ -186,7 +202,7 @@ namespace IEOperateCore
             return getCollection;
         }
 
-        public IList<T> getElementByName<T>(string name)
+        public IList<T> GetElementByName<T>(string name)
         {
             IList<T> getCollection = new List<T>();
 
@@ -350,7 +366,7 @@ namespace IEOperateCore
 
         public void FrameNotificationBar_DownLoadFile_Save(string savePath = null, string windowTitle = null)
         {
-            SaveFileFrameNotificationBar(savePath,windowTitle);
+            SaveFileFrameNotificationBar(savePath, windowTitle);
         }
 
         public void FrameNotificationBar_DownLoadFile_SaveAs(string savePath = null, string windowTitle = null)
@@ -462,7 +478,7 @@ namespace IEOperateCore
                 }
             }
 
-            
+
             int waitCount = 1200;
             do
             {
@@ -503,13 +519,13 @@ namespace IEOperateCore
                             Regex regex = new Regex(patternStr);
 
                             Match title = regex.Match(content);
- 
+
                             regex = new Regex(fileSizePattern);
 
                             Match fileSizeMatch = regex.Match(title.Value);
 
                             fileSize = fileSizeMatch.Value;
-                          
+
                             regex = new Regex(patternDownloadFileName);
 
                             fileName = regex.Match(content).Value;
@@ -547,7 +563,7 @@ namespace IEOperateCore
                 }
             }
 
-          
+
 
             int waitCount = 1200;
             do
